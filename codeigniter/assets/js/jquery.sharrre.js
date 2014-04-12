@@ -363,8 +363,8 @@
   Plugin.prototype.init = function () {
     var self = this;
     if(this.options.urlCurl !== ''){
-      urlJson.googlePlus = this.options.urlCurl + '?url={url}&type=googlePlus'; // PHP script for GooglePlus...
-      urlJson.stumbleupon = this.options.urlCurl + '?url={url}&type=stumbleupon'; // PHP script for Stumbleupon...
+      urlJson.googlePlus = this.options.urlCurl + '{url}/googlePlus'; // PHP script for GooglePlus...
+      urlJson.stumbleupon = this.options.urlCurl + '{url}/stumbleupon'; // PHP script for Stumbleupon...
     }
     $(this.element).addClass(this.options.className); //add class
     
@@ -440,10 +440,14 @@
   
   /* getSocialJson methode
   ================================================== */
+
   Plugin.prototype.getSocialJson = function (name) {
+    function base64_encode(e){var t="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";var n,r,i,s,o,u,a,f,l=0,c=0,h="",p=[];if(!e){return e}do{n=e.charCodeAt(l++);r=e.charCodeAt(l++);i=e.charCodeAt(l++);f=n<<16|r<<8|i;s=f>>18&63;o=f>>12&63;u=f>>6&63;a=f&63;p[c++]=t.charAt(s)+t.charAt(o)+t.charAt(u)+t.charAt(a)}while(l<e.length);h=p.join("");var d=e.length%3;return(d?h.slice(0,d-3):h)+"===".slice(d||3)}
+    
     var self = this,
     count = 0,
-    url = urlJson[name].replace('{url}', encodeURIComponent(this.options.url));
+    url = urlJson[name].replace('{url}', base64_encode(this.options.url));
+    //console.log(url);
     if(this.options.buttons[name].urlCount === true && this.options.buttons[name].url !== ''){
       url = urlJson[name].replace('{url}', this.options.buttons[name].url);
     }

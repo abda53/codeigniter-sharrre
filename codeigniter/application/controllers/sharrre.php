@@ -1,4 +1,6 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
 
 class Sharrre extends CI_Controller {
 
@@ -16,17 +18,15 @@ class Sharrre extends CI_Controller {
 	
 	public function google()
 	{
-	     
-        header('content-type: application/json');
         $json = array('url'=>'','count'=>0);
-        $json['url'] = $_GET['url'];
-        $url = urlencode($_GET['url']);
-        $type = urlencode($_GET['type']);
+        $json['url'] = base64_decode($this->uri->segment(3));
+        $nice_url = base64_decode($this->uri->segment(3));
+        $url = urlencode($nice_url);
+        $type = $this->uri->segment(4);
         
-        if(filter_var($_GET['url'], FILTER_VALIDATE_URL)){
-            if($type == 'googlePlus'){ 
-                $content = parse("https://plusone.google.com/u/0/_/+1/fastbutton?url=".$url."&count=true");
-            
+        if(filter_var($nice_url, FILTER_VALIDATE_URL)){
+            if($type == 'googlePlus'){
+                $content = $this->parse("https://plusone.google.com/u/0/_/+1/fastbutton?url=".$url."&count=true");
                 $dom = new DOMDocument;
                 $dom->preserveWhiteSpace = false;
                 @$dom->loadHTML($content);
@@ -40,46 +40,50 @@ class Sharrre extends CI_Controller {
                 }
             }
             else if($type == 'stumbleupon'){
-                $content = parse("http://www.stumbleupon.com/services/1.01/badge.getinfo?url=$url");
+                $content = $this->parse("http://www.stumbleupon.com/services/1.01/badge.getinfo?url=$url");
                 $result = json_decode($content);
                 if (isset($result->result->views)){
                     $json['count'] = $result->result->views;
                 }
             }
         }
+        header('Content-Type: application/json');        
         echo str_replace('\\/','/',json_encode($json));
+        exit;
+    }
+    
+    
         
-        function parse($encUrl){
-            $options = array(
-                CURLOPT_RETURNTRANSFER => true, // return web page
-                CURLOPT_HEADER => false, // don't return headers
-                CURLOPT_FOLLOWLOCATION => true, // follow redirects
-                CURLOPT_ENCODING => "", // handle all encodings
-                CURLOPT_USERAGENT => 'sharrre', // who am i
-                CURLOPT_AUTOREFERER => true, // set referer on redirect
-                CURLOPT_CONNECTTIMEOUT => 5, // timeout on connect
-                CURLOPT_TIMEOUT => 10, // timeout on response
-                CURLOPT_MAXREDIRS => 3, // stop after 10 redirects
-                CURLOPT_SSL_VERIFYHOST => 0,
-                CURLOPT_SSL_VERIFYPEER => false,
-            );
-            $ch = curl_init();
-            
-            $options[CURLOPT_URL] = $encUrl;  
-            curl_setopt_array($ch, $options);
-            
-            $content = curl_exec($ch);
-            $err = curl_errno($ch);
-            $errmsg = curl_error($ch);
-            
-            curl_close($ch);
-            
-            if ($errmsg != '' || $err != '') {
-                /*print_r($errmsg);
-                print_r($errmsg);*/
-            }
-            return $content;
+    public function parse($encUrl){
+        $options = array(
+            CURLOPT_RETURNTRANSFER => true, // return web page
+            CURLOPT_HEADER => false, // don't return headers
+            CURLOPT_FOLLOWLOCATION => true, // follow redirects
+            CURLOPT_ENCODING => "", // handle all encodings
+            CURLOPT_USERAGENT => 'sharrre', // who am i
+            CURLOPT_AUTOREFERER => true, // set referer on redirect
+            CURLOPT_CONNECTTIMEOUT => 5, // timeout on connect
+            CURLOPT_TIMEOUT => 10, // timeout on response
+            CURLOPT_MAXREDIRS => 3, // stop after 10 redirects
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSL_VERIFYPEER => false,
+        );
+        $ch = curl_init();
+        
+        $options[CURLOPT_URL] = $encUrl;  
+        curl_setopt_array($ch, $options);
+        
+        $content = curl_exec($ch);
+        $err = curl_errno($ch);
+        $errmsg = curl_error($ch);
+        
+        curl_close($ch);
+        
+        if ($errmsg != '' || $err != '') {
+            /*print_r($errmsg);
+            print_r($errmsg);*/
         }
+        return $content;
     }
 }
 
